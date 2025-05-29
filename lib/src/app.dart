@@ -44,6 +44,7 @@ import 'middleware/local_storage.dart';
 import 'util.dart' as util;
 import 'actions/actions.dart' as actions;
 import 'constants.dart' as constants;
+import 'dart:js' as js;
 
 // global variable for whole program
 late App app;
@@ -132,23 +133,41 @@ class App {
     // for null-safety we need to make up default values here, but the reducer code
     // assumes that the first time the reducer is called it could be null, meaning
     // it won't matter what non-null state we assign to initialState
-    store_selection_rope = Store<SelectionRope?>(optimized_selection_rope_reducer,
-        initialState: null, middleware: [throttle_middleware]);
+    store_selection_rope = Store<SelectionRope?>(
+      optimized_selection_rope_reducer,
+      initialState: null,
+      middleware: [throttle_middleware],
+    );
 
-    store_selection_box = Store<SelectionBox?>(optimized_selection_box_reducer,
-        initialState: null, middleware: [throttle_middleware]);
+    store_selection_box = Store<SelectionBox?>(
+      optimized_selection_box_reducer,
+      initialState: null,
+      middleware: [throttle_middleware],
+    );
 
-    store_potential_crossover = Store<PotentialCrossover?>(optimized_potential_crossover_reducer,
-        initialState: null, middleware: [throttle_middleware]);
+    store_potential_crossover = Store<PotentialCrossover?>(
+      optimized_potential_crossover_reducer,
+      initialState: null,
+      middleware: [throttle_middleware],
+    );
 
-    store_extensions_move = Store<DNAExtensionsMove?>(optimized_dna_extensions_move_reducer,
-        initialState: null, middleware: [throttle_middleware]);
+    store_extensions_move = Store<DNAExtensionsMove?>(
+      optimized_dna_extensions_move_reducer,
+      initialState: null,
+      middleware: [throttle_middleware],
+    );
 
-    store_dna_ends_move = Store<DNAEndsMove?>(optimized_dna_ends_move_reducer,
-        initialState: null, middleware: [throttle_middleware]);
+    store_dna_ends_move = Store<DNAEndsMove?>(
+      optimized_dna_ends_move_reducer,
+      initialState: null,
+      middleware: [throttle_middleware],
+    );
 
-    store_helix_group_move = Store<HelixGroupMove?>(optimized_helix_group_move_reducer,
-        initialState: null, middleware: [throttle_middleware]);
+    store_helix_group_move = Store<HelixGroupMove?>(
+      optimized_helix_group_move_reducer,
+      initialState: null,
+      middleware: [throttle_middleware],
+    );
   }
 
   Future<T> disable_keyboard_shortcuts_while<T>(Future<T> f()) async {
@@ -212,7 +231,13 @@ class App {
 
   setup_warning_before_unload() {
     window.onBeforeUnload.listen((event) {
-      if (state.ui_state.warn_on_exit_if_unsaved && state.undo_redo.undo_stack.isNotEmpty) {
+      bool warnOnExit = state.ui_state.warn_on_exit_if_unsaved && state.undo_redo.undo_stack.isNotEmpty;
+
+      // Expose this to the JavaScript context so Electron can read it
+      // TODO: This is deprecated.
+      js.context['warnOnExit'] = warnOnExit;
+
+      if (warnOnExit) {
         BeforeUnloadEvent e = event as BeforeUnloadEvent;
         e.returnValue = 'You have unsaved work. Are you sure you want to leave?';
       }
@@ -239,8 +264,9 @@ class App {
     // Each time the oxView frame loads, tell it to adjust the camera to be the same angle as the
     // main view in scadnano: y down, z right, x out of the screen.
     this.view.oxview_view.frame.onLoad.listen((event) {
-      Blob blob_js_camera_commands =
-          new Blob(['camera.up.multiplyScalar(-1)'], blob_type_to_string(BlobType.text));
+      Blob blob_js_camera_commands = new Blob([
+        'camera.up.multiplyScalar(-1)',
+      ], blob_type_to_string(BlobType.text));
       Map<String, dynamic> message = {
         'message': 'iframe_drop',
         'files': [blob_js_camera_commands],
@@ -256,7 +282,8 @@ class App {
 
 warn_wrong_browser() {
   if (!(browser.isChrome || browser.isFirefox) || browser.isEdgeChrome) {
-    var msg = 'You appear to be using ${browser.name}. '
+    var msg =
+        'You appear to be using ${browser.name}. '
         'scadnano does not currently support this browser. '
         'Please use Chrome, Firefox, or Edge instead.';
     window.alert(msg);
@@ -269,14 +296,14 @@ setup_undo_redo_keyboard_listeners() {
   // previous solution with onKeyPress used event.code == 'KeyZ' and worked inconsistently
   window.onKeyDown.listen((KeyboardEvent event) {
     int key = event.which!;
-//    print('*' * 100);
-//    print('charCode: ${event.charCode}');
-//    print(' keyCode: ${event.keyCode}');
-//    print('    code: ${event.code}');
-//    print('     key: ${event.key}');
-//    print('   which: ${event.which}');
-//    print("Control: ${event.getModifierState('control')}"); // modifiers.control);
-//    print("KeyCode: ${event.key.codeUnitAt(0)}");
+    //    print('*' * 100);
+    //    print('charCode: ${event.charCode}');
+    //    print(' keyCode: ${event.keyCode}');
+    //    print('    code: ${event.code}');
+    //    print('     key: ${event.key}');
+    //    print('   which: ${event.which}');
+    //    print("Control: ${event.getModifierState('control')}"); // modifiers.control);
+    //    print("KeyCode: ${event.key.codeUnitAt(0)}");
 
     // ctrl+Z to undo
     if ((event.ctrlKey || event.metaKey) && !event.shiftKey && key == KeyCode.Z && !event.altKey) {

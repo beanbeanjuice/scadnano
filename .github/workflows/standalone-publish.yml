@@ -1,0 +1,114 @@
+name: Build and Upload Platform-Specific Release Artifacts
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    name: Build for Linux
+    steps:
+      - name: Checkout dev branch
+        uses: actions/checkout@v4
+        with:
+          ref: dev
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+
+      - name: Setup Dart SDK
+        uses: dart-lang/setup-dart@v1
+
+      - name: Install Node.js dependencies
+        working-directory: ./standalone
+        run: npm install
+
+      - name: Build for Linux
+        working-directory: ./standalone
+        run: npm run buildLin
+
+      - name: Zip Linux build
+        run: |
+          mkdir -p dist
+          cp ./standalone/build/* ./dist/  # adjust if needed
+          zip -r linux-build.zip dist
+
+      - name: Upload Linux artifact
+        uses: softprops/action-gh-release@v1
+        with:
+          files: linux-build.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-windows:
+    runs-on: windows-latest
+    name: Build for Windows
+    steps:
+      - name: Checkout dev branch
+        uses: actions/checkout@v4
+        with:
+          ref: dev
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+
+      - name: Setup Dart SDK
+        uses: dart-lang/setup-dart@v1
+
+      - name: Install Node.js dependencies
+        working-directory: ./standalone
+        run: npm install
+
+      - name: Build for Windows
+        working-directory: ./standalone
+        run: npm run buildWin
+
+      - name: Zip Windows build
+        run: |
+          mkdir dist
+          copy .\standalone\build\* dist\  # adjust if needed
+          powershell Compress-Archive -Path dist\* -DestinationPath windows-build.zip
+
+      - name: Upload Windows artifact
+        uses: softprops/action-gh-release@v1
+        with:
+          files: windows-build.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-macos:
+    runs-on: macos-latest
+    name: Build for macOS
+    steps:
+      - name: Checkout dev branch
+        uses: actions/checkout@v4
+        with:
+          ref: dev
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+
+      - name: Setup Dart SDK
+        uses: dart-lang/setup-dart@v1
+
+      - name: Install Node.js dependencies
+        working-directory: ./standalone
+        run: npm install
+
+      - name: Build for macOS
+        working-directory: ./standalone
+        run: npm run buildMac
+
+      - name: Zip macOS build
+        run: |
+          mkdir -p dist
+          cp ./standalone/build/* ./dist/
+          zip -r macos-build.zip dist
+
+      - name: Upload macOS artifact
+        uses: softprops/action-gh-release@v1
+        with:
+          files: macos-build.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
