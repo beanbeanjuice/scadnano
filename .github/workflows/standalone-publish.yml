@@ -8,9 +8,6 @@ jobs:
     runs-on: ubuntu-latest
     name: Build for Linux
     steps:
-      - name: Set up GitHub CLI
-        uses: cli/cli-action@v2
-
       - name: Get latest release tag
         id: get_tag
         run: echo "tag=$(gh release view --json tagName -q .tagName)" >> "$GITHUB_OUTPUT"
@@ -51,9 +48,6 @@ jobs:
     runs-on: windows-latest
     name: Build for Windows
     steps:
-      - name: Set up GitHub CLI
-        uses: cli/cli-action@v2
-
       - name: Get latest release tag
         id: get_tag
         run: echo "tag=$(gh release view --json tagName -q .tagName)" >> "$env:GITHUB_OUTPUT"
@@ -94,9 +88,6 @@ jobs:
     runs-on: macos-latest
     name: Build for macOS
     steps:
-      - name: Set up GitHub CLI
-        uses: cli/cli-action@v2
-
       - name: Get latest release tag
         id: get_tag
         run: echo "tag=$(gh release view --json tagName -q .tagName)" >> "$GITHUB_OUTPUT"
