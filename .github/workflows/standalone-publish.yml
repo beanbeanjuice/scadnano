@@ -1,18 +1,24 @@
 name: Build and Upload Platform-Specific Release Artifacts
 
 on:
-  release:
-    types: [created, released]
+  workflow_dispatch:
 
 jobs:
   build-linux:
     runs-on: ubuntu-latest
     name: Build for Linux
     steps:
-      - name: Checkout dev branch
+      - name: Set up GitHub CLI
+        uses: cli/cli-action@v2
+
+      - name: Get latest release tag
+        id: get_tag
+        run: echo "tag=$(gh release view --json tagName -q .tagName)" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout latest release
         uses: actions/checkout@v4
         with:
-          ref: dev
+          ref: ${{ steps.get_tag.outputs.tag }}
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -31,7 +37,7 @@ jobs:
       - name: Zip Linux build
         run: |
           mkdir -p dist
-          cp ./standalone/build/* ./dist/  # adjust if needed
+          cp ./standalone/build/* ./dist/
           zip -r linux-build.zip dist
 
       - name: Upload Linux artifact
@@ -45,10 +51,17 @@ jobs:
     runs-on: windows-latest
     name: Build for Windows
     steps:
-      - name: Checkout dev branch
+      - name: Set up GitHub CLI
+        uses: cli/cli-action@v2
+
+      - name: Get latest release tag
+        id: get_tag
+        run: echo "tag=$(gh release view --json tagName -q .tagName)" >> "$env:GITHUB_OUTPUT"
+
+      - name: Checkout latest release
         uses: actions/checkout@v4
         with:
-          ref: dev
+          ref: ${{ steps.get_tag.outputs.tag }}
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -67,7 +80,7 @@ jobs:
       - name: Zip Windows build
         run: |
           mkdir dist
-          copy .\standalone\build\* dist\  # adjust if needed
+          copy .\standalone\build\* dist\
           powershell Compress-Archive -Path dist\* -DestinationPath windows-build.zip
 
       - name: Upload Windows artifact
@@ -81,10 +94,17 @@ jobs:
     runs-on: macos-latest
     name: Build for macOS
     steps:
-      - name: Checkout dev branch
+      - name: Set up GitHub CLI
+        uses: cli/cli-action@v2
+
+      - name: Get latest release tag
+        id: get_tag
+        run: echo "tag=$(gh release view --json tagName -q .tagName)" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout latest release
         uses: actions/checkout@v4
         with:
-          ref: dev
+          ref: ${{ steps.get_tag.outputs.tag }}
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
